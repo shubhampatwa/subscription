@@ -4,26 +4,39 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
-var routes = require('./routes/index');
-var users = require('./routes/users');
-
+var flash = require('express-flash');
+var session = require('express-session');
+var nodemailer = require('nodemailer');
+var passport = require('passport');
+var async = require('async');
+var crypto = require('crypto');
+var mongoose=require("mongoose");
+mongoose.connect("mongodb://localhost/subscription");
 var app = express();
 var http = require('http').Server(app);
-// view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({ secret: 'shshshshshsh' }));
+app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
+require('./models/user');
+require('./models/post');
+require('./config/passport')(passport);
+require('./controllers/user.js')(app);
+require('./feed/post.js')(app);
+require('./feed/subscription.js')(app);
 
-app.use('/', routes);
-app.use('/users', users);
+
+
+
+
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
